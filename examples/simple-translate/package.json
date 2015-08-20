@@ -4,7 +4,7 @@
   "description": "react-motion-fun-example-description",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "set NODE_ENV=development&&node server.js",
     "dist": "set NODE_ENV=production&&webpack"
   },
   "repository": {
