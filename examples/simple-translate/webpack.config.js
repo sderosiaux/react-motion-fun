@@ -17,7 +17,6 @@ if (process.env.NODE_ENV === 'development') {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin()
   ]);
-  
   loaders.unshift('react-hot');
 
   entry = entry.concat([

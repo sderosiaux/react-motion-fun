@@ -3,16 +3,18 @@ import { Spring } from 'react-motion';
 import random from 'lodash/number/random';
 import range from 'lodash/utility/range';
 
+const NB_ITEMS = 100;
+
 class Circle extends Component {
   render() {
     const style = (x, y) => ({
-      background: 'radial-gradient(orange 0%, hsla(0, 100%, 20%, 0) 100%) 0 0',
+      background: 'radial-gradient(blue 0%, hsla(0, 100%, 30%, 0) 100%) 0 0',
       width: this.props.radius,
       height: this.props.radius,
       borderRadius: this.props.radius,
       position: 'absolute',
-      left: x,
-      top: y
+      transform: `translate(${x}px, ${y}px)`,
+      willChange: 'transform'
     });
 
     const start = {
@@ -57,7 +59,7 @@ export default class App extends Component {
         <p>Click on a ball to catch it!</p>
         <p>You catched {this.state.score} balls!</p>
         <ul onMouseMove={::this.handleMouseMove}>
-          {range(0, 20).map((i) => <Circle key={i} onCatchMe={::this.handleCatchCircle} radius={random(50, 150)} x={random(10, window.document.body.clientWidth)} y={random(10, window.document.body.clientHeight)} />)}
+          {range(0, NB_ITEMS).map((i) => <Circle key={i} onCatchMe={::this.handleCatchCircle} radius={random(50, 150)} x={random(10, window.document.body.clientWidth)} y={random(10, window.document.body.clientHeight)} />)}
         </ul>
       </div>      
     );

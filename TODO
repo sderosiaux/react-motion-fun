@@ -1,0 +1,2 @@
+- charts (nextValue (x) x > 100 ? 0 : sin(x) * 100)
+- infinity sign (with a long shadow?)
