@@ -20,8 +20,10 @@
   },
   "homepage": "https://github.com/Stéphane D./react-motion-fun",
   "dependencies": {
+    "fisheye": "^1.0.1",
     "lodash": "^3.10.1",
     "react": "^0.13.3",
+    "react-line": "^1.0.1",
     "react-motion": "^0.2.7"
   },
   "devDependencies": {

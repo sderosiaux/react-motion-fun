@@ -2,40 +2,15 @@ import React, { Component } from 'react';
 import { Spring } from 'react-motion';
 import random from 'lodash/number/random';
 import range from 'lodash/utility/range';
-
+import Line from 'react-line';
+import fisheye from 'fisheye';
 
 const DISTORTION = 2;
 const RADIUS = 400;
 const NB_CIRCLES = 100;
 const MAX_CIRCLE_RADIUS = 100;
 
-let k0 = Math.exp(DISTORTION);
-k0 = k0 / (k0 - 1) * RADIUS;
-let k1 = DISTORTION / RADIUS;
-
-
-function applyFishEye(origin) {
-  return function(circle) {
-    const dx = circle.originX - origin.x;
-    const dy = circle.originY - origin.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-  
-    // too far away ? don't apply anything
-    if (!distance || distance >= RADIUS) {
-      circle.x = circle.originX;
-      circle.y = circle.originY;
-      circle.scale = distance >= RADIUS ? 1 : 10;
-    }  else {
-      const k = k0 * (1 - Math.exp(-distance * k1)) / distance * .75 + .25;
-      circle.x = origin.x + dx * k;
-      circle.y = origin.y + dy * k;
-      circle.scale = Math.min(k, 10);
-    }
-
-    return circle;
-  }
-}
-
+const f = fisheye();
 
 class Circle extends Component {
   constructor() {
@@ -81,32 +56,6 @@ class Zoom extends Component {
     return <div style={style}></div>
   }
 }
-
-class Line extends Component {
-  render() {
-
-    let from = this.props.from;
-    let to = this.props.to;
-    if (to.x < from.x) {
-      from = this.props.to;
-      to = this.props.from;
-    }
-    const len = Math.sqrt(Math.pow(from.x - to.x, 2) + Math.pow(from.y - to.y, 2));
-    const angle = Math.atan((to.y - from.y) / (to.x - from.x));
-
-    const style = {
-      position: 'absolute',
-      transform: `translate(${from.x - .5 * len * (1 - Math.cos(angle))}px, ${from.y + .5 * len * Math.sin(angle)}px) rotate(${angle}rad)`,
-      width: `${len}px`,
-      height: `${0}px`,
-      borderBottom: '1px solid rgba(0,0,0,.2)'
-    };
-
-    return <div style={style}></div>;
-  }
-}
-
-
 function createCircles(count) {
   const margin = MAX_CIRCLE_RADIUS / 2;
 
@@ -179,7 +128,7 @@ export default class App extends Component {
   moveFocus(e) {
     const { clientX: x , clientY: y } = e;
     this.setState({ eye: { x, y } });
-    const circles = this.state.circles.map(applyFishEye({x, y}));
+    const circles = this.state.circles.map(c => ({ ...c, ...f({x, y})(c) }) );
     this.setState({ circles : circles });
     this.setState({ lines : createLines(circles) });
   }

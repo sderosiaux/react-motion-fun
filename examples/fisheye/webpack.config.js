@@ -8,7 +8,7 @@ var plugins = [
   })
 ];
 
-var loaders = ['babel']
+var loaders = ['babel?stage=0']
 
 var entry = [ './index' ];
 
@@ -54,11 +54,10 @@ module.exports = {
     loaders: [{
       test: /\.js$/,
       loaders: loaders,
-      exclude: /node_modules/,
       include: __dirname
     }, {
       test: /\.js$/,
-      loaders: ['babel'],
+      loaders: ['babel?stage=0'],
       include: path.join(__dirname, '..', '..', 'src')
     }]
   }
