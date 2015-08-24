@@ -6,12 +6,11 @@ import zipWith from 'lodash/array/zipWith';
 import Line from 'react-line';
 import fisheye from 'fisheye';
 
-const DISTORTION = 2;
 const RADIUS = 400;
-const NB_CIRCLES = 10;
+const NB_CIRCLES = 100;
 const MAX_CIRCLE_RADIUS = 100;
 
-const f = fisheye();
+const f = fisheye(3, RADIUS / 2);
 
 class Circle extends Component {
   constructor() {
@@ -91,7 +90,6 @@ function orderCirclesByPosition(circles) {
   circles.splice(0, 1);
   for (var i = 1; i < len; i++) {
     const nearest = findNearest(circles, sorted[i - 1]);
-    nearest.i = i - 1;
     sorted.push(nearest);
     circles.splice(circles.indexOf(nearest), 1);
   }
@@ -139,7 +137,7 @@ export default class App extends Component {
         y: mutation.y,
         scale: mutation.scale
     }));
-    console.log(circles);
+
     this.setState({ circles : circles });
     this.setState({ lines : createLines(circles) });
   }
@@ -148,10 +146,10 @@ export default class App extends Component {
     return (
       <div style={{height: '100%' }} onMouseMove={::this.moveFocus}>
         {this.state.lines.map((l, i) => 
-          <Line key={'l' + i} from={l.from} to={l.to} style="2px dashed #ccc;" />
+          <Line key={i} from={l.from} to={l.to} style="2px dashed #ccc;" />
         )}
         {this.state.circles.map(c => 
-          <Circle key={'c' + c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
+          <Circle key={c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
         )}
         <Zoom key="eye" radius={RADIUS} x={this.state.eye.x} y={this.state.eye.y} scale={1} />
       </div>
