@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import { Spring } from 'react-motion';
 import random from 'lodash/number/random';
 import range from 'lodash/utility/range';
+import zipWith from 'lodash/array/zipWith';
 import Line from 'react-line';
 import fisheye from 'fisheye';
 
 const DISTORTION = 2;
 const RADIUS = 400;
-const NB_CIRCLES = 100;
+const NB_CIRCLES = 10;
 const MAX_CIRCLE_RADIUS = 100;
 
 const f = fisheye();
@@ -22,7 +23,7 @@ class Circle extends Component {
   render() {
     const delta = ~~(255 * this.props.indice / NB_CIRCLES);
     const style = () => ({
-      background: `radial-gradient(rgb(${delta}, ${delta}, 255) 0%, rgba(255,255,255,0) 100%) 0 0`,
+      background: `radial-gradient(rgb(${delta}, ${delta}, 255) 0%, rgba(255,255,255,0.5) 100%) 0 0`,
       border: this.props.indice === 0 ? '1px solid black': '',
       width: this.props.radius,
       height: this.props.radius,
@@ -30,7 +31,7 @@ class Circle extends Component {
       position: 'absolute',
       transform: `translate(${this.props.x-this.props.radius/2}px, ${this.props.y-this.props.radius/2}px) scale(${this.props.scale})`,
       willChange: 'transform',      
-      boxShadow: `5px 5px 20px 0px rgba(0,0,0,.5) inset`,
+      boxShadow: `5px 5px 20px 0px rgba(0,0,0,.5) inset`
     });
     return <div style={ style() }></div>;
   }
@@ -128,7 +129,17 @@ export default class App extends Component {
   moveFocus(e) {
     const { clientX: x , clientY: y } = e;
     this.setState({ eye: { x, y } });
-    const circles = this.state.circles.map(c => ({ ...c, ...f({x, y})(c) }) );
+    // we need to map the originX/Y, not the x/y that represents the dynamic
+    // position of the circles (dynamic due to the fisheye deformation)
+    const getOnlyXY = (c => ({ x: c.originX, y: c.originY }));
+    const mutations = this.state.circles.map(getOnlyXY).map(f({x, y}));
+    const circles = zipWith(this.state.circles, mutations, (circle, mutation) => ({
+        ...circle,
+        x: mutation.x,
+        y: mutation.y,
+        scale: mutation.scale
+    }));
+    console.log(circles);
     this.setState({ circles : circles });
     this.setState({ lines : createLines(circles) });
   }
@@ -136,13 +147,13 @@ export default class App extends Component {
   render() {
     return (
       <div style={{height: '100%' }} onMouseMove={::this.moveFocus}>
-        {this.state.circles.map(c => 
-          <Circle key={c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
-        )}
         {this.state.lines.map((l, i) => 
-          <Line key={i} from={l.from} to={l.to} />
+          <Line key={'l' + i} from={l.from} to={l.to} style="2px dashed #ccc;" />
         )}
-        <Zoom kmey="eye" radius={RADIUS} x={this.state.eye.x} y={this.state.eye.y} scale={1} />
+        {this.state.circles.map(c => 
+          <Circle key={'c' + c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
+        )}
+        <Zoom key="eye" radius={RADIUS} x={this.state.eye.x} y={this.state.eye.y} scale={1} />
       </div>
 
     );
