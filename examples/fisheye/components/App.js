@@ -146,7 +146,7 @@ export default class App extends Component {
     return (
       <div style={{height: '100%' }} onMouseMove={::this.moveFocus}>
         {this.state.lines.map((l, i) => 
-          <Line key={i} from={l.from} to={l.to} style="2px dashed #ccc;" />
+          <Line key={i} from={l.from} to={l.to} style="2px dashed #ccc" />
         )}
         {this.state.circles.map(c => 
           <Circle key={c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
