@@ -1,61 +1,19 @@
 import React, { Component } from 'react';
-import { Spring } from 'react-motion';
+import { TransitionSpring } from 'react-motion';
 import random from 'lodash/number/random';
 import range from 'lodash/utility/range';
 import zipWith from 'lodash/array/zipWith';
 import Line from 'react-line';
 import fisheye from 'fisheye';
 
-const RADIUS = 400;
-const NB_CIRCLES = 100;
-const MAX_CIRCLE_RADIUS = 100;
+import Zoom from './Zoom.js';
+import Circle from './Circle.js';
+
+import { NB_CIRCLES, RADIUS, MAX_CIRCLE_RADIUS } from './constants';
 
 const f = fisheye(3, RADIUS / 2);
 
-class Circle extends Component {
-  constructor() {
-    super();
-  }
-  shouldComponentUpdate(newProps, newState, newContext) {
-    return this.props.x != newProps.x || this.props.y != newProps.y || this.props.scale != newProps.scale;
-  }
-  render() {
-    const delta = ~~(255 * this.props.indice / NB_CIRCLES);
-    const style = () => ({
-      background: `radial-gradient(rgb(${delta}, ${delta}, 255) 0%, rgba(255,255,255,0.5) 100%) 0 0`,
-      border: this.props.indice === 0 ? '1px solid black': '',
-      width: this.props.radius,
-      height: this.props.radius,
-      borderRadius: '50%',
-      position: 'absolute',
-      transform: `translate(${this.props.x-this.props.radius/2}px, ${this.props.y-this.props.radius/2}px) scale(${this.props.scale})`,
-      willChange: 'transform',      
-      boxShadow: `5px 5px 20px 0px rgba(0,0,0,.5) inset`
-    });
-    return <div style={ style() }></div>;
-  }
-}
 
-class Zoom extends Component {
-  constructor() {
-    super();
-  }
-  render() {
-    const style = {
-      WebkitFilter: 'blur(0)',
-      width: `${this.props.radius}px`,
-      height: `${this.props.radius}px`,
-      border: '5px solid black',
-      borderRadius: '50%',
-      position: 'absolute',
-      transform: `translate(${this.props.x-this.props.radius/2}px, ${this.props.y-this.props.radius/2}px)`,
-      willChange: 'transform', 
-      boxShadow: '10px 10px 10px rgba(0,0,0,.2), 10px 10px 10px rgba(0,0,0,.2) inset'
-    };
-
-    return <div style={style}></div>
-  }
-}
 function createCircles(count) {
   const margin = MAX_CIRCLE_RADIUS / 2;
 
@@ -88,9 +46,11 @@ function orderCirclesByPosition(circles) {
   const len = circles.length;
   const sorted = [ circles[0] ];
   circles.splice(0, 1);
+  circles[0].i = 0;
   for (var i = 1; i < len; i++) {
     const nearest = findNearest(circles, sorted[i - 1]);
     sorted.push(nearest);
+    nearest.i = i;
     circles.splice(circles.indexOf(nearest), 1);
   }
   return sorted;
@@ -149,7 +109,7 @@ export default class App extends Component {
       y: { val: c.y, config: [180, 7] },
       scale: { val: c.scale, config: [200, 9] }
     });
-    
+
     const getLineEndValue = (l) => ({
       from: {
         x: { val: l.from.x, config: [180, 7] },
@@ -166,6 +126,15 @@ export default class App extends Component {
       y: π.y.val
     });
 
+    const willEnter = (key, endValue) => {
+      console.log('willEnter', JSON.stringify(arguments));
+      //return endValue[key];
+      return 1;
+    }
+    const willLeave = (key, endValue, expectedEndValue, interpolatedValue, speed) => {
+      console.log('willLeave', JSON.stringify(arguments));
+    }
+
     return (
       <div style={{height: '100%' }} onMouseMove={::this.moveFocus}>
         {/*
@@ -178,23 +147,23 @@ export default class App extends Component {
         */}
 
        {this.state.lines.map((l, i) =>
-          <Spring endValue={getLineEndValue(l)}> 
+          <TransitionSpring endValue={getLineEndValue(l)}> 
             { π => <Line key={i} style="2px dashed #ccc"
                          from={unwrap(π.from)}
                          to={unwrap(π.to)}
             /> }
-          </Spring>
+          </TransitionSpring>
         )}
 
         {this.state.circles.map(c => 
-          <Spring endValue={getCircleEndValue(c)}>
+          <TransitionSpring willEnter={willEnter} willLeave={willLeave} endValue={getCircleEndValue(c)}>
             { π => <Circle key={c.i} indice={c.i}
                 radius={c.radius}
                 x={π.x.val}
                 y={π.y.val}
                 scale={π.scale.val}
             /> }
-          </Spring>
+          </TransitionSpring>
         )}
         <Zoom key="eye" radius={RADIUS} x={this.state.eye.x} y={this.state.eye.y} scale={1} />
       </div>
