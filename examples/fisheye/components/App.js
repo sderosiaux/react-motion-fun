@@ -143,13 +143,58 @@ export default class App extends Component {
   }
 
   render() {
+
+    const getCircleEndValue = (c) => ({
+      x: { val: c.x, config: [180, 7] },
+      y: { val: c.y, config: [180, 7] },
+      scale: { val: c.scale, config: [200, 9] }
+    });
+    
+    const getLineEndValue = (l) => ({
+      from: {
+        x: { val: l.from.x, config: [180, 7] },
+        y: { val: l.from.y, config: [180, 7] }
+      },
+      to: {
+        x: { val: l.to.x, config: [180, 7] },
+        y: { val: l.to.y, config: [180, 7] }
+      }
+    });
+
+    const unwrap = (π) => ({
+      x: π.x.val,
+      y: π.y.val
+    });
+
     return (
       <div style={{height: '100%' }} onMouseMove={::this.moveFocus}>
+        {/*
         {this.state.lines.map((l, i) => 
-          <Line key={i} from={l.from} to={l.to} style="2px dashed #ccc" />
+          <Line key={i} style="2px dashed #ccc"
+                from={l.from}
+                to={l.to}
+          />
         )}
+        */}
+
+       {this.state.lines.map((l, i) =>
+          <Spring endValue={getLineEndValue(l)}> 
+            { π => <Line key={i} style="2px dashed #ccc"
+                         from={unwrap(π.from)}
+                         to={unwrap(π.to)}
+            /> }
+          </Spring>
+        )}
+
         {this.state.circles.map(c => 
-          <Circle key={c.i} indice={c.i} radius={c.radius} x={c.x} y={c.y} scale={c.scale} />
+          <Spring endValue={getCircleEndValue(c)}>
+            { π => <Circle key={c.i} indice={c.i}
+                radius={c.radius}
+                x={π.x.val}
+                y={π.y.val}
+                scale={π.scale.val}
+            /> }
+          </Spring>
         )}
         <Zoom key="eye" radius={RADIUS} x={this.state.eye.x} y={this.state.eye.y} scale={1} />
       </div>
