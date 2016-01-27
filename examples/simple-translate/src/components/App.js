@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import { Spring } from 'react-motion';
-import random from 'lodash/number/random';
-import range from 'lodash/utility/range';
+import { Motion, spring, StaggeredMotion } from 'react-motion';
+import random from 'lodash/random';
+import range from 'lodash/range';
 
 const SPEED = 100;
 
 class Circle extends Component {
   render() {
-    const style = (x, y) => ({
+    const getstyle = (x, y) => ({
       //background: `radial-gradient(rgb(0, 0, ${~~(255 * this.props.indice / this.props.maxIndice)}) 0%, transparent 100%) 0 0`,
       background: `radial-gradient(rgb(120, 120, 220) 0%, black 100%) 0 0`,
       width: this.props.radius,
@@ -21,31 +21,25 @@ class Circle extends Component {
     });
 
     const start = {
-      size: {
-        x: { val: this.props.x },
-        y: { val: this.props.y },
-        angle: { val: random(0, Math.PI * 2, true) }
-      }
+      x: this.props.x,
+      y: this.props.y,
+      angle: random(0, Math.PI * 2, true)
     };
 
-    const end = (prevValue) => {
-      let x = prevValue.size.x.val;
-      let angle = prevValue.size.angle.val;
-      angle = angle + Math.PI / 32;
-      x += (prevValue.direction === 'left' ? -SPEED : SPEED);
+    let x = this.props.x;
+    let angle = this.props.angle;
+    angle = angle + Math.PI / 32;
+    x += (this.props.direction === 'left' ? -SPEED : SPEED);
 
-      return {
-        size: {
-          x: { val: this.props.ellipse.x + Math.cos(angle) * this.props.ellipse.majorWidth },
-          y: { val: this.props.ellipse.y + Math.sin(angle) * this.props.ellipse.minorWidth },
-          angle: { val: angle }
-        }
-      };
+    const end = {
+      x: spring(this.props.ellipse.x + Math.cos(angle) * this.props.ellipse.majorWidth),
+      y: spring(this.props.ellipse.y + Math.sin(angle) * this.props.ellipse.minorWidth),
+      angle: spring(angle)
     };
 
-    return (<Spring defaultValue={start} endValue={end}>
-        { interpolated => <div style={ style(interpolated.size.x.val, interpolated.size.y.val) }></div>}
-      </Spring>
+    return (<Motion defaultStyle={start} style={start}>
+        { interpolated => <div style={ getstyle(interpolated.x, interpolated.y) }></div>}
+      </Motion>
     );
   }
 }
@@ -70,7 +64,7 @@ class Ellipse extends Component {
 
 class Planet extends Component {
   render() {
-    const style = (angle) => ({
+    const getstyle = (angle) => ({
       width: this.props.radius,
       height: this.props.radius,
       borderRadius: this.props.radius,
@@ -84,29 +78,25 @@ class Planet extends Component {
     });
 
     const start = {
-      size: {
-        angle: { val: random(0, Math.PI * 2, true) }
-      }
+      angle: random(0, Math.PI * 2, true)
     };
 
     const end = (prevValue) => {
-      let angle = prevValue.size.angle.val;
+      let angle = prevValue.angle;
       angle = angle + Math.PI / 4;
       if (angle > Math.PI * 2) {
         angle = 0;
       }
 
       return {
-        size: {
-          angle: { val: angle }
-        }
+        angle: spring(angle)
       };
     };
 
     return (
-      <Spring defaultValue={start} endValue={end}>
-        { interpolated => <div style={ style(interpolated.size.angle.val) }></div>}
-      </Spring>
+      <Motion defaultStyle={start} style={end}>
+        { interpolated => <div style={ getstyle(interpolated.angle) }></div>}
+      </Motion>
     );
   }
 }
@@ -124,15 +114,15 @@ export default class App extends Component {
 
   render() {
     return (
-      <Spring endValue={{x: { val: this.state.x }, y: { val: this.state.y } }}>
+      <Motion style={{x: spring(this.state.x), y: spring(this.state.y) }}>
         { interpolated => 
-          <div onMouseMove={::this.movePlanet} style={{background: 'url(http://dreamatico.com/data_images/space/space-4.jpg)', height: '100%' }}>      
-            <Ellipse key={1} radius={50} count={10} x={interpolated.x.val} y={interpolated.y.val} majorWidth={400} minorWidth={100} />
-            <Ellipse key={2} radius={20} count={30} x={interpolated.x.val} y={interpolated.y.val} majorWidth={800} minorWidth={60} />
-            <Planet x={interpolated.x.val} y={interpolated.y.val} radius={300} />
+          <div onMouseMove={(e) => this.movePlanet(e)} style={{background: 'url(http://dreamatico.com/data_images/space/space-4.jpg)', height: '100%' }}>      
+            <Ellipse key={1} radius={50} count={10} x={interpolated.x} y={interpolated.y} majorWidth={400} minorWidth={100} />
+            <Ellipse key={2} radius={20} count={30} x={interpolated.x} y={interpolated.y} majorWidth={800} minorWidth={60} />
+            <Planet x={interpolated.x} y={interpolated.y} radius={300} />
           </div>
         }
-      </Spring>
+      </Motion>
     );
   }
 }

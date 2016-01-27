@@ -8,21 +8,15 @@ var plugins = [
   })
 ];
 
-var loaders = ['babel']
-
-var entry = [ './index' ];
+var entry = [ path.join(__dirname, 'index.js') ];
 
 if (process.env.NODE_ENV === 'development') {
   plugins = plugins.concat([
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin()
   ]);
-  loaders.unshift('react-hot');
 
-  entry = entry.concat([
-    'webpack-dev-server/client?http://localhost:3000',
-    'webpack/hot/only-dev-server'
-  ]);
+  entry.unshift('webpack-hot-middleware/client');
 
 } else {
   plugins = plugins.concat(
@@ -53,7 +47,7 @@ module.exports = {
   module: {
     loaders: [{
       test: /\.js$/,
-      loaders: loaders,
+      loaders: ['babel'],
       exclude: /node_modules/,
       include: __dirname
     }, {

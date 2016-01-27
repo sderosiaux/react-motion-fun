@@ -1,19 +1,16 @@
+var express = require('express');
 var webpack = require('webpack');
-var WebpackDevServer = require('webpack-dev-server');
-var config = require('./webpack.config');
+var path = require('path');
 
-new WebpackDevServer(webpack(config), {
-  publicPath: config.output.publicPath,
-  hot: true,
-  historyApiFallback: true,
-  noInfo: true,
-  stats: {
-    colors: true
-  }
-}).listen(3000, 'localhost', function (err) {
-  if (err) {
-    console.log(err);
-  }
+var webpackDevMiddleware = require("webpack-dev-middleware");
+var webpackHotMiddleware = require("webpack-hot-middleware");
+var webpackConfig = require('./webpack.config.js');
 
-  console.log('Listening at localhost:3000');
-});
+var app = express();
+
+var compiler = webpack(webpackConfig);
+app.use(webpackDevMiddleware(compiler, { noInfo: true, publicPath: webpackConfig.output.publicPath }));
+app.use(webpackHotMiddleware(compiler));
+app.use(express.static('src'));
+
+app.listen(3000);
